@@ -1,0 +1,205 @@
+{
+  "name": "Resume Refiner AI Agent V3",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "Resume Refiner AI Agent",
+        "formDescription": "Job searching and need to fine-tune your application? Let our AI Agent help you attract recruiters by refining your resume!\n\nSubmit your resume, your email, and your desired job listing, and our AI agent will provide focus points, key words or phrases, and areas of opportunity to help improve your application!",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Name",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Email",
+              "fieldType": "email",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Resume",
+              "fieldType": "file",
+              "multipleFiles": false,
+              "acceptFileTypes": ".doc,.docx,.pdf,.odt,.txt",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Job Listing",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.2,
+      "position": [
+        -528,
+        -64
+      ],
+      "id": "8cbe4d9e-8273-42d4-80cd-6a4ed45ef773",
+      "name": "On form submission",
+      "webhookId": "6c91b76a-4623-498e-8988-95c1373c62a5"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('On form submission').item.json.Email }}",
+        "subject": "=Your Refined Resume Suggestions ",
+        "message": "=<h2>Hello {{ $('On form submission').item.json.Name }}</h2>\n\n<p><strong>Ten most important keywords or phrases in the job description</strong><br>-{{ $json.output['Ten most important keywords or phrases in the job description'][0] }}<br>-{{ $json.output['Ten most important keywords or phrases in the job description'][1] }}<br>-{{ $json.output['Ten most important keywords or phrases in the job description'][2] }}<br>-{{ $json.output['Ten most important keywords or phrases in the job description'][3] }}<br>-{{ $json.output['Ten most important keywords or phrases in the job description'][4] }}<br>-{{ $json.output['Ten most important keywords or phrases in the job description'][5] }}<br>-{{ $json.output['Ten most important keywords or phrases in the job description'][6] }}<br>-{{ $json.output['Ten most important keywords or phrases in the job description'][7] }}<br>-{{ $json.output['Ten most important keywords or phrases in the job description'][8] }}<br>-{{ $json.output['Ten most important keywords or phrases in the job description'][9] }}</p>\n\n<p><strong>Suggestions for improving your resume</strong><br>-{{ $json.output['Suggestions for improving MPrieto_ResumeTemplate.pdf'][0] }}<br>-{{ $json.output['Suggestions for improving MPrieto_ResumeTemplate.pdf'][1] }}<br>-{{ $json.output['Suggestions for improving MPrieto_ResumeTemplate.pdf'][2] }}<br>-{{ $json.output['Suggestions for improving MPrieto_ResumeTemplate.pdf'][3] }}<br>-{{ $json.output['Suggestions for improving MPrieto_ResumeTemplate.pdf'][4] }}<br>-{{ $json.output['Suggestions for improving MPrieto_ResumeTemplate.pdf'][5] }}<br>-{{ $json.output['Suggestions for improving MPrieto_ResumeTemplate.pdf'][6] }}</p>\n\n<p><strong>Points that are least relevant to the job listing</strong><br>-{{ $json.output['Points that are least relevant to the job listing'][0] }}<br>-{{ $json.output['Points that are least relevant to the job listing'][1] }}<br>-{{ $json.output['Points that are least relevant to the job listing'][2] }}</p>",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        208,
+        -64
+      ],
+      "id": "9ceb939d-dcf3-4eda-bfdf-d6863b19560e",
+      "name": "Send a message",
+      "webhookId": "ef67de5e-a733-4c35-b8ec-c0f59337aad0",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "bw2ziKQErDmG3gCe",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a job coach who reads resumes and makes suggestions to improve compatibility with job listings. Your job is to read the job description in {{ $('On form submission').item.json['Job Listing'] }} and return a list of the ten most important keywords or phrases in the job description.\n\nYou will also read {{ $('On form submission').item.json.Resume.filename }} and suggest actionable improvements for seven of the most relevant points that resonate with the most important keywords or phrases. \nYou will also suggest three points in the resume that are the least relevant to the job listing.\n\nProvide json output.",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.1,
+      "position": [
+        -192,
+        -64
+      ],
+      "id": "d7321262-51d8-49b8-9b8a-59d21a670b95",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-3.5-turbo",
+          "mode": "list",
+          "cachedResultName": "gpt-3.5-turbo"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -192,
+        176
+      ],
+      "id": "4ad295bf-ebc7-4715-bd4b-45fce8782b5b",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "y8cTulFW29mIYHTk",
+          "name": "OpenAi account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "={{ $json['Job Listing'] }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -368,
+        -64
+      ],
+      "id": "648e8692-4073-4617-896b-8810751908df",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n\"Ten most important keywords or phrases in the job description\" : [\"1,2,3,4,5,6,7,8,9,10\"], \n  \"Suggestions for improving MPrieto_ResumeTemplate.pdf\" : [\"1,2,3,4,5,6,7\"], \n  \"Points that are least relevant to the job listing\" : [\"1,2,3\"]\n}\n  "
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        0,
+        176
+      ],
+      "id": "c4ee3f70-eb39-4601-b8e6-85a1622633fc",
+      "name": "Structured Output Parser"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "703af37b-39bc-44cc-9416-1fc626a47a17",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "ec2f31bed10bac8a33280da62174665a3433247618261861d00326956cd0bb91"
+  },
+  "id": "MT3fDC1zW8AgWJnq",
+  "tags": []
+}
